@@ -23,11 +23,13 @@ export default function App() {
       const saved = localStorage.getItem('affiliate_hub_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // If old products with Urdu descriptions exist, upgrade to clean English
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].shortDescription?.includes('ke sath')) {
-          return INITIAL_PRODUCTS;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // If old products with Urdu descriptions exist, upgrade to clean English
+          if (parsed[0].shortDescription?.includes('ke sath') || parsed[0].titleUrdu) {
+            return INITIAL_PRODUCTS;
+          }
+          return parsed;
         }
-        return parsed;
       }
     } catch {
       // ignore
@@ -40,11 +42,13 @@ export default function App() {
       const saved = localStorage.getItem('affiliate_hub_profile');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Automatically migrate if old name was stored
-        if (parsed.name === 'Sagar Khan Reviews' || !parsed.name || parsed.bio?.includes('Main rozmarrah')) {
-          return INITIAL_CREATOR_PROFILE;
+        if (parsed && typeof parsed === 'object') {
+          // Automatically migrate if old name was stored
+          if (parsed.name === 'Sagar Khan Reviews' || !parsed.name || (typeof parsed.bio === 'string' && parsed.bio.includes('Main rozmarrah'))) {
+            return INITIAL_CREATOR_PROFILE;
+          }
+          return { ...INITIAL_CREATOR_PROFILE, ...parsed };
         }
-        return parsed;
       }
     } catch {
       // ignore
