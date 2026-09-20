@@ -51,4 +51,12 @@ if (mainCss) {
 fs.writeFileSync(path.join(docsDir, '.nojekyll'), '');
 fs.writeFileSync(path.resolve('.nojekyll'), '');
 
+// Copy robots.txt and sitemap.xml to root for root-level crawler access
+if (fs.existsSync(path.join(distDir, 'robots.txt'))) {
+  fs.copyFileSync(path.join(distDir, 'robots.txt'), path.resolve('robots.txt'));
+}
+if (fs.existsSync(path.join(distDir, 'sitemap.xml'))) {
+  fs.copyFileSync(path.join(distDir, 'sitemap.xml'), path.resolve('sitemap.xml'));
+}
+
 console.log('Successfully prepared docs/ and root assets for GitHub Pages deployment.');

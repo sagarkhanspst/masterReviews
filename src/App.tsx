@@ -13,6 +13,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { AddProductModal } from './components/AddProductModal';
 import { CreatorProfileModal } from './components/CreatorProfileModal';
 import { AffiliateGuideModal } from './components/AffiliateGuideModal';
+import { SeoStructuredData } from './components/SeoStructuredData';
 import { Footer } from './components/Footer';
 import { Plus, PackageSearch, Sparkles } from 'lucide-react';
 
@@ -190,6 +191,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 antialiased selection:bg-orange-100 selection:text-orange-900">
+      {/* Search Engine Optimization & Social Sharing Metadata */}
+      <SeoStructuredData products={products} selectedProduct={selectedProduct} />
       
       {/* Top Header */}
       <Header

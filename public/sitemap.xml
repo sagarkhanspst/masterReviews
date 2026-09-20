@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Homepage & Core Storefront -->
+  <url>
+    <loc>./</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Categories -->
+  <url>
+    <loc>./#tech</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>./#gadgets</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>./#home</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>./#fitness</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Featured Products with Image Metadata for Google Image Search -->
+  <url>
+    <loc>./#prod-1</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>Ultra Noise-Cancelling Wireless Headphones Pro</image:title>
+      <image:caption>Hybrid Active Noise Cancellation Wireless Headphones Review and Best Price Deal</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>./#prod-2</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>4K Ultra HD Action and Vlog Camera with Dual Screens</image:title>
+      <image:caption>4K 60FPS Waterproof Dual Screen Action Camera Review and Discount Deal</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>./#prod-3</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>Smart Fitness and Health Tracker Smartwatch with AMOLED</image:title>
+      <image:caption>AMOLED Display Fitness and Health Tracker Smartwatch Review</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>./#prod-4</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>Precision Ergonomic Wireless Vertical Mouse</image:title>
+      <image:caption>57-degree ergonomic vertical silent mouse review</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>./#prod-5</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>Compact Espresso Coffee Machine and Milk Frother</image:title>
+      <image:caption>20-bar Italian pump barista espresso maker review</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>./#prod-6</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&amp;fit=crop&amp;w=800&amp;q=80</image:loc>
+      <image:title>RGB LED Gaming and Studio Desk Light Bar</image:title>
+      <image:caption>Screen-glare-free monitor desk light bar review</image:caption>
+    </image:image>
+  </url>
+</urlset>
