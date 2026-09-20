@@ -1,0 +1,6 @@
+{
+  "name": "Master Reviews",
+  "description": "Curated affiliate product showcase and reviews by Master Reviews with video demos, honest ratings, and direct deal links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
