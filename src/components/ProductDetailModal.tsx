@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product, CreatorProfile } from '../types';
-import { getEmbedVideoUrl } from '../utils/videoUtils';
+import { getEmbedVideoUrl, isDirectVideo } from '../utils/videoUtils';
 import { 
   X, 
   Star, 
@@ -170,14 +170,23 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Main Media Box */}
               <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-xs">
-                {activeMedia === 'video' && embedUrl ? (
-                  <iframe
-                    src={embedUrl}
-                    title={product.title}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                {activeMedia === 'video' && product.videoUrl ? (
+                  isDirectVideo(product.videoUrl) ? (
+                    <video
+                      src={product.videoUrl}
+                      controls
+                      playsInline
+                      className="w-full h-full object-contain bg-black"
+                    />
+                  ) : embedUrl ? (
+                    <iframe
+                      src={embedUrl}
+                      title={product.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : null
                 ) : (
                   <img
                     src={selectedImage}

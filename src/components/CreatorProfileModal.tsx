@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CreatorProfile } from '../types';
-import { X, User, Video, Send, Instagram, Facebook, Globe, Shield, Sparkles } from 'lucide-react';
+import { compressAndProcessImage } from '../utils/mediaStorage';
+import { X, User, Video, Send, Instagram, Facebook, Globe, Shield, Sparkles, Upload } from 'lucide-react';
 
 interface CreatorProfileModalProps {
   isOpen: boolean;
@@ -103,16 +104,47 @@ export const CreatorProfileModal: React.FC<CreatorProfileModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Profile Picture URL
+            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Profile Picture</span>
+              <span className="text-[11px] text-slate-400 font-normal">Direct upload or web link</span>
             </label>
-            <input
-              type="url"
-              value={formData.avatarUrl}
-              onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-orange-500 outline-hidden"
-            />
+            <div className="flex items-center gap-3">
+              {formData.avatarUrl && (
+                <img
+                  src={formData.avatarUrl}
+                  alt="Avatar preview"
+                  className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
+                />
+              )}
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={formData.avatarUrl}
+                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                  placeholder="Paste image link or upload photo"
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-hidden"
+                />
+                <label className="px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload File</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        try {
+                          const compressed = await compressAndProcessImage(e.target.files[0], 600, 0.85);
+                          setFormData({ ...formData, avatarUrl: compressed });
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
 
           <div>

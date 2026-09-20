@@ -1,4 +1,17 @@
 /**
+ * Checks if the video is a direct video file (data URL, blob URL, or direct mp4/webm/mov)
+ */
+export function isDirectVideo(url?: string): boolean {
+  if (!url) return false;
+  const trimmed = url.trim().toLowerCase();
+  return (
+    trimmed.startsWith('data:video/') ||
+    trimmed.startsWith('blob:') ||
+    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(trimmed)
+  );
+}
+
+/**
  * Extracts embeddable YouTube URL from watch/short/share links
  */
 export function getEmbedVideoUrl(url?: string): string | null {
@@ -16,7 +29,7 @@ export function getEmbedVideoUrl(url?: string): string | null {
   }
 
   // fallback for direct video or other
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:video/') || trimmed.startsWith('blob:')) {
     return trimmed;
   }
 
