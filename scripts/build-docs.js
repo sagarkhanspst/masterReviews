@@ -22,11 +22,33 @@ function copyDirSync(src, dest) {
 
 const distDir = path.resolve('dist');
 const docsDir = path.resolve('docs');
+const rootAssetsDir = path.resolve('assets');
 
-console.log('Copying production build from dist to docs for GitHub Pages...');
+console.log('Copying production build from dist to docs and root assets for GitHub Pages...');
 copyDirSync(distDir, docsDir);
 
-// Ensure .nojekyll exists in docs
-fs.writeFileSync(path.join(docsDir, '.nojekyll'), '');
+// Also copy dist/assets to root assets/ so root index.html can serve statically on GitHub Pages
+if (fs.existsSync(path.join(distDir, 'assets'))) {
+  copyDirSync(path.join(distDir, 'assets'), rootAssetsDir);
+}
 
-console.log('Successfully prepared docs/ directory for GitHub Pages deployment.');
+// Create predictable index.js and index.css aliases in both docs/assets and assets/
+const distAssets = fs.existsSync(path.join(distDir, 'assets')) ? fs.readdirSync(path.join(distDir, 'assets')) : [];
+const mainJs = distAssets.find(f => f.startsWith('index-') && f.endsWith('.js'));
+const mainCss = distAssets.find(f => f.startsWith('index-') && f.endsWith('.css'));
+
+if (mainJs) {
+  if (fs.existsSync(rootAssetsDir)) fs.copyFileSync(path.join(distDir, 'assets', mainJs), path.join(rootAssetsDir, 'index.js'));
+  if (fs.existsSync(path.join(docsDir, 'assets'))) fs.copyFileSync(path.join(distDir, 'assets', mainJs), path.join(docsDir, 'assets', 'index.js'));
+}
+
+if (mainCss) {
+  if (fs.existsSync(rootAssetsDir)) fs.copyFileSync(path.join(distDir, 'assets', mainCss), path.join(rootAssetsDir, 'index.css'));
+  if (fs.existsSync(path.join(docsDir, 'assets'))) fs.copyFileSync(path.join(distDir, 'assets', mainCss), path.join(docsDir, 'assets', 'index.css'));
+}
+
+// Ensure .nojekyll exists in docs and root
+fs.writeFileSync(path.join(docsDir, '.nojekyll'), '');
+fs.writeFileSync(path.resolve('.nojekyll'), '');
+
+console.log('Successfully prepared docs/ and root assets for GitHub Pages deployment.');
