@@ -4,20 +4,17 @@
     <meta charset="utf-8">
     <title>Master Reviews</title>
     <script>
-      // Single Page App redirect for GitHub Pages
-      sessionStorage.redirect = location.href;
-      var pathSegmentsToKeep = 1;
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      // Single Page redirect for GitHub Pages
+      // Safely redirects any missing subpath (e.g. /docs or refresh on child path) to the main storefront
+      var path = window.location.pathname;
+      var segments = path.split('/').filter(Boolean);
+      // For user.github.io/repo/, keep repo name
+      var repo = segments.length > 0 && window.location.hostname.includes('github.io') ? '/' + segments[0] + '/' : '/';
+      window.location.replace(window.location.protocol + '//' + window.location.host + repo);
     </script>
   </head>
-  <body>
-    <p>Redirecting to Master Reviews...</p>
+  <body style="font-family:sans-serif;text-align:center;padding:40px;color:#334155;">
+    <h2>Redirecting to Master Reviews Storefront...</h2>
+    <p>Please wait a moment while we load the products.</p>
   </body>
 </html>

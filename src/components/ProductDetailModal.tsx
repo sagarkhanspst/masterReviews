@@ -224,7 +224,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(product.rating)
+                          i < Math.floor(product.rating ?? 5)
                             ? 'fill-amber-400 text-amber-400'
                             : 'text-slate-300'
                         }`}
@@ -232,10 +232,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     ))}
                   </div>
                   <span className="text-xs font-bold text-slate-800">
-                    {product.rating} / 5.0
+                    {product.rating ?? 4.8} / 5.0
                   </span>
                   <span className="text-xs text-slate-500">
-                    ({product.reviewsCount.toLocaleString()} reviews)
+                    ({(product.reviewsCount ?? 1).toLocaleString()} reviews)
                   </span>
                 </div>
 

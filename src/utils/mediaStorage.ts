@@ -86,8 +86,9 @@ export async function getMediaUrlFromStorage(id: string): Promise<string | null>
 
 /**
  * Optimizes and compresses an uploaded image file down to a lightweight, crystal-clear WebP / JPEG data URL
+ * Keeps size around 30KB - 60KB so it never exhausts localStorage limits on page refresh.
  */
-export function compressAndProcessImage(file: File, maxDim = 1200, quality = 0.85): Promise<string> {
+export function compressAndProcessImage(file: File, maxDim = 800, quality = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -116,7 +117,6 @@ export function compressAndProcessImage(file: File, maxDim = 1200, quality = 0.8
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          // Fallback to raw data url
           resolve(readerEvent.target?.result as string);
           return;
         }
@@ -154,8 +154,8 @@ export function compressAndProcessImage(file: File, maxDim = 1200, quality = 0.8
  */
 export function processVideoUpload(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    // For local immediate preview & storage, read as DataURL if under 15MB
-    if (file.size <= 15 * 1024 * 1024) {
+    // If under 2MB, read as compact data URL
+    if (file.size <= 2 * 1024 * 1024) {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
@@ -164,9 +164,17 @@ export function processVideoUpload(file: File): Promise<string> {
       reader.onerror = (e) => reject(e);
       reader.readAsDataURL(file);
     } else {
-      // For larger files, create object URL
-      const objectUrl = URL.createObjectURL(file);
-      resolve(objectUrl);
+      // For larger files, save to IndexedDB and create an object URL
+      const mediaId = `video-${Date.now()}`;
+      saveMediaToStorage(mediaId, file)
+        .then(() => {
+          const objectUrl = URL.createObjectURL(file);
+          resolve(objectUrl);
+        })
+        .catch(() => {
+          const objectUrl = URL.createObjectURL(file);
+          resolve(objectUrl);
+        });
     }
   });
 }

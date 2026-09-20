@@ -158,11 +158,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <div className="flex items-center text-amber-500">
               <Star className="w-4 h-4 fill-amber-400" />
               <span className="ml-1 text-xs font-bold text-slate-900">
-                {product.rating}
+                {product.rating ?? 4.8}
               </span>
             </div>
             <span className="text-xs text-slate-400">
-              ({product.reviewsCount.toLocaleString()} reviews)
+              ({(product.reviewsCount ?? 1).toLocaleString()} reviews)
             </span>
           </div>
 

@@ -81,80 +81,16 @@
     }
     </script>
     <script>
-      // Fix relative path resolution on GitHub Pages when URL lacks trailing slash
-      if (location.hostname.endsWith('github.io') && !location.pathname.endsWith('/') && !location.pathname.split('/').pop().includes('.')) {
+      // Fix relative path resolution on GitHub Pages when repository root lacks trailing slash
+      if (location.hostname.includes('github.io') && !location.pathname.endsWith('/') && !location.pathname.split('/').pop().includes('.')) {
         location.replace(location.pathname + '/' + location.search + location.hash);
       }
-      // Handle redirect from 404.html
-      (function(){
-        var redirect = sessionStorage.redirect;
-        delete sessionStorage.redirect;
-        if (redirect && redirect != location.href) {
-          history.replaceState(null, null, redirect);
-        }
-      })();
     </script>
-    <script type="module" crossorigin src="./assets/index-B4rWfc-z.js"></script>
+    <script type="module" crossorigin src="./assets/index-DSVAEc4q.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-B7pu8Q3I.css">
   </head>
   <body>
-    <div id="root">
-      <!-- Fallback container that displays if GitHub Pages serves uncompiled source -->
-      <div id="gh-uncompiled-fallback" style="display:none;min-height:100vh;background:#f8fafc;color:#0f172a;font-family:'Plus Jakarta Sans',system-ui,sans-serif;padding:32px 16px;box-sizing:border-box;">
-        <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:20px;border:1px solid #e2e8f0;box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);padding:32px;text-align:center;">
-          <div style="width:56px;height:56px;background:#ffedd5;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">
-            🛍️
-          </div>
-          <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;font-family:'Outfit',sans-serif;">
-            Master Reviews Storefront
-          </h1>
-          <p style="font-size:14px;color:#64748b;line-height:1.6;margin:0 0 24px;">
-            Connecting to the production storefront... If this screen does not automatically redirect, click the button below to launch the compiled store:
-          </p>
-          <a id="gh-launch-btn" href="./docs/" style="display:inline-block;background:#0f172a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;text-decoration:none;transition:background 0.2s;">
-            Open Master Reviews &rarr;
-          </a>
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;text-align:left;font-size:12px;color:#94a3b8;line-height:1.5;">
-            <strong>GitHub Pages Tip:</strong> In your GitHub repository, go to <em>Settings &rarr; Pages</em> and select <strong>Branch: main</strong> with <strong>Folder: /docs</strong> for instant loading.
-          </div>
-        </div>
-      </div>
-    </div>
-    <script>
-      (function() {
-        var isGitHub = window.location.hostname.indexOf('github.io') !== -1;
-        if (!isGitHub) return;
-
-        // 1. Normalize trailing slash on GitHub Pages
-        var path = window.location.pathname;
-        if (!path.endsWith('/') && path.split('/').pop().indexOf('.') === -1) {
-          window.location.replace(window.location.protocol + '//' + window.location.host + path + '/' + window.location.search + window.location.hash);
-          return;
-        }
-
-        // 2. Check if this document contains uncompiled main.tsx (i.e. repository root served directly)
-        var hasRawMain = !!document.querySelector('script[src*="main.tsx"]');
-        if (hasRawMain) {
-          // If in repository root, forward to compiled /docs/
-          if (!path.includes('/docs/')) {
-            window.location.replace(path + 'docs/' + window.location.search + window.location.hash);
-            return;
-          }
-
-          // Fallback: inject compiled assets directly if redirect did not happen
-          var css = document.createElement('link');
-          css.rel = 'stylesheet';
-          css.href = './assets/index.css';
-          document.head.appendChild(css);
-
-          var js = document.createElement('script');
-          js.type = 'module';
-          js.crossOrigin = 'anonymous';
-          js.src = './assets/index.js';
-          document.body.appendChild(js);
-        }
-      })();
-    </script>
+    <div id="root"></div>
   </body>
 </html>
 
