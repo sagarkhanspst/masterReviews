@@ -8,13 +8,16 @@ import {
   Share2, 
   Check, 
   MousePointerClick,
-  Sparkles
+  Sparkles,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
   onOpenDetails: (product: Product) => void;
   onTrackClick: (productId: string) => void;
+  onEditProduct?: (product: Product) => void;
   onDeleteProduct?: (productId: string) => void;
   lang: 'ur' | 'en';
 }
@@ -23,6 +26,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onOpenDetails,
   onTrackClick,
+  onEditProduct,
+  onDeleteProduct,
   lang,
 }) => {
   const [copied, setCopied] = React.useState(false);
@@ -41,6 +46,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     navigator.clipboard.writeText(product.affiliateUrl || window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEditProduct?.(product);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDeleteProduct?.(product.id);
   };
 
   const getPlatformBadgeColor = (platform: string) => {
@@ -68,7 +83,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         />
 
         {/* Top Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 items-start">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 items-start z-10">
           {product.badge && (
             <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-wide uppercase bg-slate-900/90 text-white backdrop-blur-xs shadow-xs flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-amber-400" />
@@ -82,8 +97,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Top Right: Platform and Share */}
-        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+        {/* Top Right: Platform, Share, Edit and Delete controls */}
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
           <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border shadow-xs ${getPlatformBadgeColor(product.platform)}`}>
             {product.platform}
           </span>
@@ -91,9 +106,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleShare}
             className="p-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-700 backdrop-blur-xs transition-colors shadow-xs"
             title="Share Affiliate Link"
+            aria-label="Share affiliate link"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
           </button>
+          {onEditProduct && (
+            <button
+              onClick={handleEdit}
+              className="p-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-700 hover:text-amber-600 backdrop-blur-xs transition-colors shadow-xs"
+              title="Edit Product"
+              aria-label="Edit product"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onDeleteProduct && (
+            <button
+              onClick={handleDelete}
+              className="p-1.5 rounded-lg bg-white/90 hover:bg-white text-slate-700 hover:text-rose-600 backdrop-blur-xs transition-colors shadow-xs"
+              title="Delete Product"
+              aria-label="Delete product"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Video Available Indicator */}

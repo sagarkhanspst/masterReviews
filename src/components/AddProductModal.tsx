@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, CategoryId, Platform } from '../types';
-import { X, Plus, Image as ImageIcon, Video, Link2, Sparkles, HelpCircle } from 'lucide-react';
+import { X, Plus, Pencil, Image as ImageIcon, Video, Link2, Sparkles, HelpCircle } from 'lucide-react';
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddProduct: (product: Product) => void;
+  onUpdateProduct?: (product: Product) => void;
+  productToEdit?: Product | null;
   lang: 'ur' | 'en';
 }
 
@@ -22,9 +24,13 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
   onAddProduct,
+  onUpdateProduct,
+  productToEdit,
   lang,
 }) => {
   if (!isOpen) return null;
+
+  const isEditing = Boolean(productToEdit);
 
   const [title, setTitle] = useState('');
   const [titleUrdu, setTitleUrdu] = useState('');
@@ -43,6 +49,44 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [cons, setCons] = useState('');
   const [badge, setBadge] = useState<'Best Seller' | 'Editor\'s Choice' | 'Hot Deal' | 'Top Rated' | 'Trending'>('Hot Deal');
 
+  useEffect(() => {
+    if (productToEdit) {
+      setTitle(productToEdit.title || '');
+      setTitleUrdu(productToEdit.titleUrdu || '');
+      setCategory(productToEdit.category || 'tech');
+      setPlatform(productToEdit.platform || 'Amazon');
+      setPrice(productToEdit.price != null ? productToEdit.price.toString() : '29.99');
+      setOriginalPrice(productToEdit.originalPrice != null ? productToEdit.originalPrice.toString() : '');
+      setCurrency(productToEdit.currency || '$');
+      setImageUrl(productToEdit.imageUrl || '');
+      setVideoUrl(productToEdit.videoUrl || '');
+      setAffiliateUrl(productToEdit.affiliateUrl || '');
+      setShortDesc(productToEdit.shortDescription || '');
+      setFullDesc(productToEdit.fullDescription || '');
+      setFeatures(productToEdit.features ? productToEdit.features.join('\n') : '');
+      setPros(productToEdit.pros ? productToEdit.pros.join('\n') : '');
+      setCons(productToEdit.cons ? productToEdit.cons.join('\n') : '');
+      setBadge((productToEdit.badge as any) || 'Hot Deal');
+    } else {
+      setTitle('');
+      setTitleUrdu('');
+      setCategory('tech');
+      setPlatform('Amazon');
+      setPrice('29.99');
+      setOriginalPrice('49.99');
+      setCurrency('$');
+      setImageUrl('');
+      setVideoUrl('');
+      setAffiliateUrl('');
+      setShortDesc('');
+      setFullDesc('');
+      setFeatures('');
+      setPros('');
+      setCons('');
+      setBadge('Hot Deal');
+    }
+  }, [productToEdit, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !affiliateUrl.trim()) {
@@ -50,38 +94,67 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       return;
     }
 
-    const newProd: Product = {
-      id: `prod-${Date.now()}`,
-      title: title.trim(),
-      titleUrdu: titleUrdu.trim() || undefined,
-      category,
-      platform,
-      price: parseFloat(price) || 0,
-      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
-      currency,
-      rating: 4.8,
-      reviewsCount: 1,
-      imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
-      galleryImages: [imageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80'],
-      videoUrl: videoUrl.trim() || undefined,
-      shortDescription: shortDesc.trim() || 'High quality recommended product with direct discount link.',
-      fullDescription: fullDesc.trim() || shortDesc.trim() || 'Verified quality product tested for durability and performance.',
-      features: features.trim()
-        ? features.split('\n').map(s => s.trim()).filter(Boolean)
-        : ['High build quality and reliability', 'Verified seller guarantee', 'Fast shipping available'],
-      pros: pros.trim()
-        ? pros.split('\n').map(s => s.trim()).filter(Boolean)
-        : ['Best value in this price range', 'Highly rated by users'],
-      cons: cons.trim()
-        ? cons.split('\n').map(s => s.trim()).filter(Boolean)
-        : ['Limited promotional stock discount'],
-      affiliateUrl: affiliateUrl.trim(),
-      badge,
-      clicksCount: 0,
-      featured: true,
-    };
-
-    onAddProduct(newProd);
+    if (isEditing && productToEdit && onUpdateProduct) {
+      const updated: Product = {
+        ...productToEdit,
+        title: title.trim(),
+        titleUrdu: titleUrdu.trim() || undefined,
+        category,
+        platform,
+        price: parseFloat(price) || 0,
+        originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+        currency,
+        imageUrl: imageUrl.trim() || productToEdit.imageUrl,
+        galleryImages: [imageUrl.trim() || productToEdit.imageUrl],
+        videoUrl: videoUrl.trim() || undefined,
+        shortDescription: shortDesc.trim() || productToEdit.shortDescription,
+        fullDescription: fullDesc.trim() || shortDesc.trim() || productToEdit.fullDescription,
+        features: features.trim()
+          ? features.split('\n').map(s => s.trim()).filter(Boolean)
+          : productToEdit.features,
+        pros: pros.trim()
+          ? pros.split('\n').map(s => s.trim()).filter(Boolean)
+          : productToEdit.pros,
+        cons: cons.trim()
+          ? cons.split('\n').map(s => s.trim()).filter(Boolean)
+          : productToEdit.cons,
+        affiliateUrl: affiliateUrl.trim(),
+        badge,
+      };
+      onUpdateProduct(updated);
+    } else {
+      const newProd: Product = {
+        id: `prod-${Date.now()}`,
+        title: title.trim(),
+        titleUrdu: titleUrdu.trim() || undefined,
+        category,
+        platform,
+        price: parseFloat(price) || 0,
+        originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+        currency,
+        rating: 4.8,
+        reviewsCount: 1,
+        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+        galleryImages: [imageUrl.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80'],
+        videoUrl: videoUrl.trim() || undefined,
+        shortDescription: shortDesc.trim() || 'High quality recommended product with direct discount link.',
+        fullDescription: fullDesc.trim() || shortDesc.trim() || 'Verified quality product tested for durability and performance.',
+        features: features.trim()
+          ? features.split('\n').map(s => s.trim()).filter(Boolean)
+          : ['High build quality and reliability', 'Verified seller guarantee', 'Fast shipping available'],
+        pros: pros.trim()
+          ? pros.split('\n').map(s => s.trim()).filter(Boolean)
+          : ['Best value in this price range', 'Highly rated by users'],
+        cons: cons.trim()
+          ? cons.split('\n').map(s => s.trim()).filter(Boolean)
+          : ['Limited promotional stock discount'],
+        affiliateUrl: affiliateUrl.trim(),
+        badge,
+        clicksCount: 0,
+        featured: true,
+      };
+      onAddProduct(newProd);
+    }
     onClose();
   };
 
@@ -94,15 +167,17 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-              <Plus className="w-4 h-4" />
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+              isEditing ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-600'
+            }`}>
+              {isEditing ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </div>
             <div>
               <h3 className="font-bold text-slate-900 text-base font-['Outfit']">
-                Add New Affiliate Item
+                {isEditing ? 'Edit Product Details' : 'Add New Affiliate Item'}
               </h3>
               <p className="text-xs text-slate-500">
-                Add image, video demo, description, and your direct referral link
+                {isEditing ? 'Update product pricing, images, video demo, and links' : 'Add image, video demo, description, and your direct referral link'}
               </p>
             </div>
           </div>
@@ -375,9 +450,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
+              className={`px-6 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer ${
+                isEditing ? 'bg-amber-600 hover:bg-amber-700' : 'bg-orange-600 hover:bg-orange-700'
+              }`}
             >
-              Publish Product
+              {isEditing ? 'Save Changes' : 'Publish Product'}
             </button>
           </div>
 

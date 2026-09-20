@@ -63,6 +63,7 @@ export default function App() {
   
   // Modals state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
@@ -86,8 +87,38 @@ export default function App() {
   }, [profile]);
 
   // Handlers
+  const handleOpenAddModal = () => {
+    setEditingProduct(null);
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setIsAddModalOpen(true);
+  };
+
   const handleAddProduct = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
+  };
+
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    setProducts((prev) =>
+      prev.map((item) => (item.id === updatedProduct.id ? updatedProduct : item))
+    );
+    if (selectedProduct && selectedProduct.id === updatedProduct.id) {
+      setSelectedProduct(updatedProduct);
+    }
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    const targetProduct = products.find((p) => p.id === productId);
+    const title = targetProduct ? `"${targetProduct.title}"` : 'this product';
+    if (window.confirm(`Are you sure you want to delete ${title} from your website?`)) {
+      setProducts((prev) => prev.filter((item) => item.id !== productId));
+      if (selectedProduct && selectedProduct.id === productId) {
+        setSelectedProduct(null);
+      }
+    }
   };
 
   const handleSaveProfile = (updatedProfile: CreatorProfile) => {
@@ -164,7 +195,7 @@ export default function App() {
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenAddModal={handleOpenAddModal}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
       />
@@ -211,7 +242,7 @@ export default function App() {
 
           {/* Quick Add Product Trigger */}
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleOpenAddModal}
             className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl border border-dashed border-orange-400 bg-orange-50/50 hover:bg-orange-100/70 text-orange-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -228,6 +259,8 @@ export default function App() {
                 product={product}
                 onOpenDetails={setSelectedProduct}
                 onTrackClick={handleTrackClick}
+                onEditProduct={handleOpenEditModal}
+                onDeleteProduct={handleDeleteProduct}
                 lang={lang}
               />
             ))}
@@ -254,7 +287,7 @@ export default function App() {
                 Clear Filters
               </button>
               <button
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={handleOpenAddModal}
                 className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
@@ -272,13 +305,20 @@ export default function App() {
         profile={profile}
         onClose={() => setSelectedProduct(null)}
         onTrackClick={handleTrackClick}
+        onEditProduct={handleOpenEditModal}
+        onDeleteProduct={handleDeleteProduct}
         lang={lang}
       />
 
       <AddProductModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingProduct(null);
+        }}
         onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
+        productToEdit={editingProduct}
         lang={lang}
       />
 

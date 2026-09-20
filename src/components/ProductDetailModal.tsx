@@ -12,7 +12,9 @@ import {
   ShieldAlert, 
   Send,
   Sparkles,
-  MousePointerClick
+  MousePointerClick,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -20,6 +22,8 @@ interface ProductDetailModalProps {
   profile: CreatorProfile;
   onClose: () => void;
   onTrackClick: (productId: string) => void;
+  onEditProduct?: (product: Product) => void;
+  onDeleteProduct?: (productId: string) => void;
   lang: 'ur' | 'en';
 }
 
@@ -28,6 +32,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   profile,
   onClose,
   onTrackClick,
+  onEditProduct,
+  onDeleteProduct,
   lang,
 }) => {
   if (!product) return null;
@@ -46,6 +52,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     navigator.clipboard.writeText(product.affiliateUrl || window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleEdit = () => {
+    if (onEditProduct && product) {
+      onClose();
+      onEditProduct(product);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDeleteProduct && product) {
+      onDeleteProduct(product.id);
+      onClose();
+    }
   };
 
   const discount = product.originalPrice && product.originalPrice > product.price
@@ -73,16 +93,39 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onEditProduct && (
+              <button
+                onClick={handleEdit}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Edit this product"
+              >
+                <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+            )}
+
+            {onDeleteProduct && (
+              <button
+                onClick={handleDelete}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-rose-50 hover:border-rose-300 text-slate-700 hover:text-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Delete this product"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            )}
+
             <button
               onClick={handleShare}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied!' : 'Share'}</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
+              className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              aria-label="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
