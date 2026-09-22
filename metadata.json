@@ -1,6 +1,6 @@
 {
   "name": "Master Reviews",
-  "description": "Discover top-rated trending products with honest reviews, hands-on video demos, price comparisons, and verified discount deals across Amazon, Daraz, and AliExpress.",
+  "description": "Discover top-rated trending products with honest reviews, hands-on video demos, price comparisons, verified discount deals, and AI Studio tools for Veo video animation, Lyria music generation, and Gemini image editing.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, CreatorProfile } from '../types';
 import { getEmbedVideoUrl, isDirectVideo } from '../utils/videoUtils';
+import { resolveMediaUrl } from '../utils/mediaStorage';
 import { 
   X, 
   Star, 
@@ -14,7 +15,9 @@ import {
   Sparkles,
   MousePointerClick,
   Pencil,
-  Trash2
+  Trash2,
+  Search,
+  Music
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -24,6 +27,8 @@ interface ProductDetailModalProps {
   onTrackClick: (productId: string) => void;
   onEditProduct?: (product: Product) => void;
   onDeleteProduct?: (productId: string) => void;
+  onOpenSeo?: (product: Product) => void;
+  onOpenAiStudio?: (tab?: 'music' | 'image' | 'video', product?: Product) => void;
   lang: 'ur' | 'en';
 }
 
@@ -34,15 +39,55 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onTrackClick,
   onEditProduct,
   onDeleteProduct,
+  onOpenSeo,
+  onOpenAiStudio,
   lang,
 }) => {
   if (!product) return null;
 
   const [activeMedia, setActiveMedia] = useState<'image' | 'video'>('image');
   const [selectedImage, setSelectedImage] = useState<string>(product.imageUrl);
+  const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const embedUrl = getEmbedVideoUrl(product.videoUrl);
+  useEffect(() => {
+    if (product) {
+      setSelectedImage(product.imageUrl);
+      setActiveMedia('image');
+    }
+  }, [product?.id, product?.imageUrl]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let activeBlobUrl: string | null = null;
+
+    if (product?.videoUrl) {
+      resolveMediaUrl(product.videoUrl)
+        .then((url) => {
+          if (isMounted) {
+            if (url && url.startsWith('blob:')) {
+              activeBlobUrl = url;
+            }
+            setResolvedVideoUrl(url);
+          }
+        })
+        .catch(() => {
+          if (isMounted) setResolvedVideoUrl(product.videoUrl || null);
+        });
+    } else {
+      setResolvedVideoUrl(null);
+    }
+
+    return () => {
+      isMounted = false;
+      if (activeBlobUrl) {
+        URL.revokeObjectURL(activeBlobUrl);
+      }
+    };
+  }, [product?.id, product?.videoUrl]);
+
+  const activeVideo = resolvedVideoUrl || product.videoUrl;
+  const embedUrl = getEmbedVideoUrl(activeVideo);
 
   const handleAffiliateClick = () => {
     onTrackClick(product.id);
@@ -115,6 +160,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </button>
             )}
 
+            {onOpenSeo && product && (
+              <button
+                onClick={() => onOpenSeo(product)}
+                className="px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="View Google Search Snippet, Keywords & Schema JSON-LD"
+              >
+                <Search className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">SEO Preview</span>
+              </button>
+            )}
+
             <button
               onClick={handleShare}
               className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -166,14 +222,52 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     <span>Watch Video Demo</span>
                   </button>
                 )}
+
+                {/* AI Creative Studio direct shortcuts */}
+                {onOpenAiStudio && (
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <button
+                      onClick={() => onOpenAiStudio('video', product)}
+                      className="px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Animate this product photo with Veo video generator"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Animate with Veo</span>
+                    </button>
+                    <button
+                      onClick={() => onOpenAiStudio('music', product)}
+                      className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs transition-colors cursor-pointer"
+                      title="Generate review background music with Lyria"
+                    >
+                      <Music className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {/* Product Background Audio Player if attached */}
+              {product.bgMusicUrl && (
+                <div className="p-2.5 bg-rose-50/80 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-rose-900">
+                    <Music className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span className="font-semibold line-clamp-1">
+                      Audio: {product.bgMusicTitle || 'Custom Lyria Soundtrack'}
+                    </span>
+                  </div>
+                  <audio
+                    src={product.bgMusicUrl}
+                    controls
+                    className="h-7 max-w-[200px]"
+                  />
+                </div>
+              )}
 
               {/* Main Media Box */}
               <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-xs">
                 {activeMedia === 'video' && product.videoUrl ? (
-                  isDirectVideo(product.videoUrl) ? (
+                  isDirectVideo(activeVideo) ? (
                     <video
-                      src={product.videoUrl}
+                      src={activeVideo}
                       controls
                       playsInline
                       className="w-full h-full object-contain bg-black"

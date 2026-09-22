@@ -14,11 +14,16 @@ import { AddProductModal } from './components/AddProductModal';
 import { CreatorProfileModal } from './components/CreatorProfileModal';
 import { AffiliateGuideModal } from './components/AffiliateGuideModal';
 import { SeoStructuredData } from './components/SeoStructuredData';
+import { SeoInspectorModal } from './components/SeoInspectorModal';
+import { AiCreativeStudioModal } from './components/AiCreativeStudioModal';
 import { Footer } from './components/Footer';
 import { Plus, PackageSearch, Sparkles } from 'lucide-react';
+import { saveProductsToIndexedDB, getProductsFromIndexedDB } from './utils/mediaStorage';
 
 // Defensive sanitizer ensuring all product fields exist and have proper types on page refresh
 function sanitizeProduct(p: any): Product {
+  const initialMatch = INITIAL_PRODUCTS.find(ip => ip.id === p.id);
+
   return {
     id: p.id || `prod-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     title: p.title || 'Featured Product',
@@ -34,6 +39,9 @@ function sanitizeProduct(p: any): Product {
       ? p.galleryImages 
       : [p.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80'],
     videoUrl: p.videoUrl || undefined,
+    generatedVideoUrl: p.generatedVideoUrl || undefined,
+    bgMusicUrl: p.bgMusicUrl || undefined,
+    bgMusicTitle: p.bgMusicTitle || undefined,
     shortDescription: p.shortDescription || 'Curated high-performance product with verified discount deals.',
     fullDescription: p.fullDescription || p.shortDescription || 'Full hands-on testing review and verified buyer ratings.',
     features: Array.isArray(p.features) && p.features.length > 0 
@@ -50,29 +58,46 @@ function sanitizeProduct(p: any): Product {
     badge: p.badge || undefined,
     clicksCount: typeof p.clicksCount === 'number' ? p.clicksCount : 0,
     featured: Boolean(p.featured),
+    seoKeywords: Array.isArray(p.seoKeywords) && p.seoKeywords.length > 0 
+      ? p.seoKeywords 
+      : initialMatch?.seoKeywords,
+    metaDescription: typeof p.metaDescription === 'string' && p.metaDescription 
+      ? p.metaDescription 
+      : initialMatch?.metaDescription,
   };
 }
 
 export default function App() {
-  // State initialization with localStorage fallback & auto-migration from previous name
+  // State initialization with localStorage fallback
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('affiliate_hub_products');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // If old products with Urdu descriptions exist, upgrade to clean English
-          if (parsed[0].shortDescription?.includes('ke sath') || parsed[0].titleUrdu) {
-            return INITIAL_PRODUCTS;
-          }
           return parsed.map(sanitizeProduct);
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn('Could not read products from localStorage:', err);
     }
     return INITIAL_PRODUCTS;
   });
+
+  // Restore latest state from IndexedDB on startup
+  useEffect(() => {
+    let isMounted = true;
+    getProductsFromIndexedDB()
+      .then((stored) => {
+        if (isMounted && stored && Array.isArray(stored) && stored.length > 0) {
+          setProducts(stored.map(sanitizeProduct));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const [profile, setProfile] = useState<CreatorProfile>(() => {
     try {
@@ -104,14 +129,49 @@ export default function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const [isSeoModalOpen, setIsSeoModalOpen] = useState(false);
+  const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
+  const [aiStudioInitialTab, setAiStudioInitialTab] = useState<'music' | 'image' | 'video'>('video');
+  const [aiStudioTargetProduct, setAiStudioTargetProduct] = useState<Product | undefined>(undefined);
 
-  // Persist products
+  // Sync URL hash with product selection for direct Google SEO deep-linking (#prod-1, etc.)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && hash.startsWith('prod-')) {
+        const found = products.find(p => p.id === hash);
+        if (found) {
+          setSelectedProduct(found);
+        }
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [products]);
+
+  // Update hash when selected product changes without reloading page
+  useEffect(() => {
+    if (selectedProduct) {
+      if (window.location.hash !== `#${selectedProduct.id}`) {
+        window.history.replaceState(null, '', `#${selectedProduct.id}`);
+      }
+    } else {
+      if (window.location.hash.startsWith('#prod-')) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  }, [selectedProduct]);
+
+  // Persist products to both localStorage and IndexedDB
   useEffect(() => {
     try {
       localStorage.setItem('affiliate_hub_products', JSON.stringify(products));
-    } catch {
-      // storage quota or disabled
+    } catch (err) {
+      console.warn('localStorage quota reached, saved to IndexedDB:', err);
     }
+    saveProductsToIndexedDB(products).catch(() => {});
   }, [products]);
 
   // Persist profile
@@ -175,12 +235,102 @@ export default function App() {
     }
   };
 
+  const handleOpenAiStudio = (tab: 'music' | 'image' | 'video' = 'video', targetProduct?: Product) => {
+    setAiStudioInitialTab(tab);
+    setAiStudioTargetProduct(targetProduct || selectedProduct || undefined);
+    setIsAiStudioOpen(true);
+  };
+
+  const handleApplyImageToProduct = (productId: string, imageUrl: string) => {
+    setProducts((prev) =>
+      prev.map((item) => {
+        if (item.id === productId) {
+          const gallery = Array.isArray(item.galleryImages)
+            ? [imageUrl, ...item.galleryImages.filter((g) => g !== imageUrl)]
+            : [imageUrl];
+          return {
+            ...item,
+            imageUrl,
+            galleryImages: gallery,
+          };
+        }
+        return item;
+      })
+    );
+    if (selectedProduct && selectedProduct.id === productId) {
+      setSelectedProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              imageUrl,
+              galleryImages: Array.isArray(prev.galleryImages)
+                ? [imageUrl, ...prev.galleryImages.filter((g) => g !== imageUrl)]
+                : [imageUrl],
+            }
+          : null
+      );
+    }
+  };
+
+  const handleApplyVideoToProduct = (productId: string, videoUrl: string) => {
+    setProducts((prev) =>
+      prev.map((item) => {
+        if (item.id === productId) {
+          return {
+            ...item,
+            videoUrl,
+            generatedVideoUrl: videoUrl,
+          };
+        }
+        return item;
+      })
+    );
+    if (selectedProduct && selectedProduct.id === productId) {
+      setSelectedProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              videoUrl,
+              generatedVideoUrl: videoUrl,
+            }
+          : null
+      );
+    }
+  };
+
+  const handleApplyMusicToProduct = (productId: string, audioUrl: string, title?: string) => {
+    setProducts((prev) =>
+      prev.map((item) => {
+        if (item.id === productId) {
+          return {
+            ...item,
+            bgMusicUrl: audioUrl,
+            bgMusicTitle: title || 'Lyria AI Soundtrack',
+          };
+        }
+        return item;
+      })
+    );
+    if (selectedProduct && selectedProduct.id === productId) {
+      setSelectedProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              bgMusicUrl: audioUrl,
+              bgMusicTitle: title || 'Lyria AI Soundtrack',
+            }
+          : null
+      );
+    }
+  };
+
   const handleResetData = () => {
     if (window.confirm('Reset all products and creator profile to default English demo items?')) {
       setProducts(INITIAL_PRODUCTS);
       setProfile(INITIAL_CREATOR_PROFILE);
       localStorage.removeItem('affiliate_hub_products');
       localStorage.removeItem('affiliate_hub_profile');
+      saveProductsToIndexedDB(INITIAL_PRODUCTS).catch(() => {});
     }
   };
 
@@ -237,6 +387,8 @@ export default function App() {
         onOpenAddModal={handleOpenAddModal}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
+        onOpenSeoModal={() => setIsSeoModalOpen(true)}
+        onOpenAiStudioModal={handleOpenAiStudio}
       />
 
       {/* Hero Storefront Banner */}
@@ -246,6 +398,7 @@ export default function App() {
         totalClicks={totalClicks}
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
+        onOpenAiStudioModal={handleOpenAiStudio}
         lang={lang}
       />
 
@@ -346,7 +499,20 @@ export default function App() {
         onTrackClick={handleTrackClick}
         onEditProduct={handleOpenEditModal}
         onDeleteProduct={handleDeleteProduct}
+        onOpenSeo={(prod) => {
+          setSelectedProduct(prod);
+          setIsSeoModalOpen(true);
+        }}
+        onOpenAiStudio={(tab, prod) => handleOpenAiStudio(tab, prod)}
         lang={lang}
+      />
+
+      <SeoInspectorModal
+        isOpen={isSeoModalOpen}
+        onClose={() => setIsSeoModalOpen(false)}
+        products={products}
+        activeProduct={selectedProduct}
+        onSelectProduct={(p) => setSelectedProduct(p)}
       />
 
       <AddProductModal
@@ -358,6 +524,7 @@ export default function App() {
         onAddProduct={handleAddProduct}
         onUpdateProduct={handleUpdateProduct}
         productToEdit={editingProduct}
+        onOpenAiStudio={(tab) => handleOpenAiStudio(tab)}
         lang={lang}
       />
 
@@ -373,6 +540,17 @@ export default function App() {
         isOpen={isGuideModalOpen}
         onClose={() => setIsGuideModalOpen(false)}
         lang={lang}
+      />
+
+      <AiCreativeStudioModal
+        isOpen={isAiStudioOpen}
+        onClose={() => setIsAiStudioOpen(false)}
+        initialTab={aiStudioInitialTab}
+        products={products}
+        targetProduct={aiStudioTargetProduct || selectedProduct || undefined}
+        onApplyImageToProduct={handleApplyImageToProduct}
+        onApplyVideoToProduct={handleApplyVideoToProduct}
+        onApplyMusicToProduct={handleApplyMusicToProduct}
       />
 
       {/* Footer */}

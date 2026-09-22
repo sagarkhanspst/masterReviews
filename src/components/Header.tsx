@@ -7,6 +7,8 @@ interface HeaderProps {
   onOpenAddModal: () => void;
   onOpenGuideModal: () => void;
   onOpenProfileModal: () => void;
+  onOpenSeoModal?: () => void;
+  onOpenAiStudioModal?: (tab?: 'music' | 'image' | 'video') => void;
   lang?: 'ur' | 'en';
   onToggleLang?: () => void;
 }
@@ -17,6 +19,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAddModal,
   onOpenGuideModal,
   onOpenProfileModal,
+  onOpenSeoModal,
+  onOpenAiStudioModal,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
@@ -62,6 +66,23 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Action buttons */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* AI Creative Studio button */}
+            {onOpenAiStudioModal && (
+              <button
+                id="open-ai-studio-btn"
+                onClick={() => onOpenAiStudioModal()}
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-amber-500/10 hover:from-orange-500/20 hover:via-rose-500/20 hover:to-amber-500/20 border border-orange-300 text-orange-900 text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Veo Video Generation, Lyria Music & Gemini Image Editing"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
+                <span className="hidden md:inline">AI Studio</span>
+                <span className="md:hidden">AI</span>
+                <span className="hidden sm:inline-block px-1.5 py-0.2 rounded-md bg-orange-600 text-white text-[9px] font-bold">
+                  Veo+Lyria
+                </span>
+              </button>
+            )}
+
             {/* Affiliate Marketing Roadmap Guide button */}
             <button
               id="open-guide-btn"
@@ -72,6 +93,20 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">Affiliate Guide</span>
               <span className="sm:hidden">Guide</span>
             </button>
+
+            {/* SEO Center button */}
+            {onOpenSeoModal && (
+              <button
+                id="open-seo-btn"
+                onClick={onOpenSeoModal}
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                title="Google SEO & Product Rich Snippets"
+              >
+                <Search className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">Product SEO</span>
+                <span className="sm:hidden">SEO</span>
+              </button>
+            )}
 
             {/* Creator Profile Edit button */}
             <button

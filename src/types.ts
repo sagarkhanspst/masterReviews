@@ -25,6 +25,11 @@ export interface Product {
   badge?: 'Best Seller' | 'Editor\'s Choice' | 'Hot Deal' | 'Top Rated' | 'Trending';
   clicksCount: number;
   featured?: boolean;
+  seoKeywords?: string[];
+  metaDescription?: string;
+  bgMusicUrl?: string;
+  bgMusicTitle?: string;
+  generatedVideoUrl?: string;
 }
 
 export interface CreatorProfile {

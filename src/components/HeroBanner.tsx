@@ -18,6 +18,7 @@ interface HeroBannerProps {
   totalClicks: number;
   onOpenProfileModal: () => void;
   onOpenGuideModal: () => void;
+  onOpenAiStudioModal?: (tab?: 'music' | 'image' | 'video') => void;
   lang: 'ur' | 'en';
 }
 
@@ -27,6 +28,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   totalClicks,
   onOpenProfileModal,
   onOpenGuideModal,
+  onOpenAiStudioModal,
   lang,
 }) => {
   const [copiedLink, setCopiedLink] = React.useState(false);
@@ -158,6 +160,32 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* In-banner AI Studio Callout */}
+            {onOpenAiStudioModal && (
+              <div 
+                id="hero-ai-studio-btn"
+                onClick={() => onOpenAiStudioModal()}
+                className="bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-amber-500/10 hover:from-orange-500/15 hover:via-rose-500/15 hover:to-amber-500/15 transition-all p-3 rounded-xl border border-orange-300 text-xs cursor-pointer flex items-center justify-between gap-3 text-orange-950 shadow-2xs group"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-orange-600 text-white flex items-center justify-center shadow-xs">
+                    <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                  </div>
+                  <div>
+                    <span className="font-bold block text-slate-900">
+                      AI Creative Studio
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Veo Videos, Lyria Music, Gemini Photos
+                    </span>
+                  </div>
+                </div>
+                <span className="font-semibold text-orange-600 group-hover:translate-x-0.5 transition-transform shrink-0">
+                  Create Media →
+                </span>
+              </div>
+            )}
 
             {/* In-banner Quick Tip */}
             <div 

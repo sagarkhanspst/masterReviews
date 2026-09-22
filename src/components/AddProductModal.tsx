@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product, CategoryId, Platform } from '../types';
-import { compressAndProcessImage, processVideoUpload } from '../utils/mediaStorage';
+import { compressAndProcessImage, processVideoUpload, resolveMediaUrl } from '../utils/mediaStorage';
 import { 
   X, 
   Plus, 
@@ -14,7 +14,8 @@ import {
   Trash2, 
   Check, 
   Play, 
-  Layers
+  Layers,
+  Search
 } from 'lucide-react';
 
 interface AddProductModalProps {
@@ -23,6 +24,7 @@ interface AddProductModalProps {
   onAddProduct: (product: Product) => void;
   onUpdateProduct?: (product: Product) => void;
   productToEdit?: Product | null;
+  onOpenAiStudio?: (tab?: 'music' | 'image' | 'video') => void;
   lang: 'ur' | 'en';
 }
 
@@ -41,6 +43,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onAddProduct,
   onUpdateProduct,
   productToEdit,
+  onOpenAiStudio,
   lang: _lang,
 }) => {
   if (!isOpen) return null;
@@ -61,6 +64,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [pros, setPros] = useState('');
   const [cons, setCons] = useState('');
   const [badge, setBadge] = useState<'Best Seller' | 'Editor\'s Choice' | 'Hot Deal' | 'Top Rated' | 'Trending'>('Hot Deal');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
 
   // Media tabs & upload states
   const [imageTab, setImageTab] = useState<'upload' | 'url'>('upload');
@@ -72,6 +77,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
   const [videoTab, setVideoTab] = useState<'upload' | 'url'>('upload');
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
   const [videoFileName, setVideoFileName] = useState<string | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [isVideoDragging, setIsVideoDragging] = useState(false);
@@ -89,7 +95,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setImageUrl(productToEdit.imageUrl || '');
       setImageTab(productToEdit.imageUrl?.startsWith('data:') || productToEdit.imageUrl?.startsWith('blob:') ? 'upload' : 'url');
       setVideoUrl(productToEdit.videoUrl || '');
-      setVideoTab(productToEdit.videoUrl?.startsWith('data:') || productToEdit.videoUrl?.startsWith('blob:') ? 'upload' : 'url');
+      setVideoTab(productToEdit.videoUrl?.startsWith('data:') || productToEdit.videoUrl?.startsWith('blob:') || productToEdit.videoUrl?.startsWith('indexeddb:') ? 'upload' : 'url');
+      if (productToEdit.videoUrl) {
+        resolveMediaUrl(productToEdit.videoUrl).then((res) => {
+          if (res) setVideoPreviewUrl(res);
+        });
+      } else {
+        setVideoPreviewUrl('');
+      }
       setAffiliateUrl(productToEdit.affiliateUrl || '');
       setShortDesc(productToEdit.shortDescription || '');
       setFullDesc(productToEdit.fullDescription || '');
@@ -97,6 +110,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setPros(productToEdit.pros ? productToEdit.pros.join('\n') : '');
       setCons(productToEdit.cons ? productToEdit.cons.join('\n') : '');
       setBadge((productToEdit.badge as any) || 'Hot Deal');
+      setMetaDescription(productToEdit.metaDescription || '');
+      setSeoKeywords(productToEdit.seoKeywords ? productToEdit.seoKeywords.join(', ') : '');
       setImageFileName(null);
       setVideoFileName(null);
     } else {
@@ -110,6 +125,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setImageUrl('');
       setImageTab('upload');
       setVideoUrl('');
+      setVideoPreviewUrl('');
       setVideoTab('upload');
       setAffiliateUrl('');
       setShortDesc('');
@@ -118,6 +134,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setPros('');
       setCons('');
       setBadge('Hot Deal');
+      setMetaDescription('');
+      setSeoKeywords('');
       setImageFileName(null);
       setVideoFileName(null);
     }
@@ -165,8 +183,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setIsProcessingVideo(true);
       const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
       setVideoFileName(`${file.name} (${sizeMb} MB)`);
-      const videoResultUrl = await processVideoUpload(file);
-      setVideoUrl(videoResultUrl);
+      const { storageUrl, previewUrl } = await processVideoUpload(file);
+      setVideoUrl(storageUrl);
+      setVideoPreviewUrl(previewUrl);
     } catch (err) {
       console.error('Video upload error:', err);
       alert('Failed to process this video file.');
@@ -204,21 +223,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
         currency,
         imageUrl: finalImage,
-        galleryImages: [finalImage],
+        galleryImages: productToEdit.galleryImages?.length
+          ? [finalImage, ...productToEdit.galleryImages.filter(img => img !== finalImage && img !== productToEdit.imageUrl)]
+          : [finalImage],
         videoUrl: videoUrl.trim() || undefined,
-        shortDescription: shortDesc.trim() || productToEdit.shortDescription,
-        fullDescription: fullDesc.trim() || shortDesc.trim() || productToEdit.fullDescription,
+        shortDescription: shortDesc.trim() || 'Verified quality product with direct discount link.',
+        fullDescription: fullDesc.trim() || shortDesc.trim() || 'Thoroughly tested and verified.',
         features: features.trim()
           ? features.split('\n').map(s => s.trim()).filter(Boolean)
-          : productToEdit.features,
+          : (productToEdit.features || []),
         pros: pros.trim()
           ? pros.split('\n').map(s => s.trim()).filter(Boolean)
-          : productToEdit.pros,
+          : (productToEdit.pros || []),
         cons: cons.trim()
           ? cons.split('\n').map(s => s.trim()).filter(Boolean)
-          : productToEdit.cons,
+          : (productToEdit.cons || []),
         affiliateUrl: affiliateUrl.trim(),
         badge,
+        metaDescription: metaDescription.trim() || undefined,
+        seoKeywords: seoKeywords.trim() 
+          ? seoKeywords.split(',').map(s => s.trim()).filter(Boolean) 
+          : undefined,
       };
       onUpdateProduct(updated);
     } else {
@@ -251,6 +276,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         badge,
         clicksCount: 0,
         featured: true,
+        metaDescription: metaDescription.trim() || undefined,
+        seoKeywords: seoKeywords.trim() 
+          ? seoKeywords.split(',').map(s => s.trim()).filter(Boolean) 
+          : undefined,
       };
       onAddProduct(newProd);
     }
@@ -420,32 +449,46 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 <span className="text-xs font-bold text-slate-900">Product Main Image</span>
               </div>
 
-              {/* Source Switcher: Upload vs URL */}
-              <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-xs">
-                <button
-                  type="button"
-                  onClick={() => setImageTab('upload')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                    imageTab === 'upload'
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Upload className="w-3 h-3 text-orange-600" />
-                  <span>Direct Upload</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageTab('url')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                    imageTab === 'url'
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Link2 className="w-3 h-3 text-slate-500" />
-                  <span>Paste URL</span>
-                </button>
+              {/* Source Switcher: Upload vs URL + AI */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setImageTab('upload')}
+                    className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      imageTab === 'upload'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Upload className="w-3 h-3 text-orange-600" />
+                    <span>Direct Upload</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageTab('url')}
+                    className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      imageTab === 'url'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Link2 className="w-3 h-3 text-slate-500" />
+                    <span>Paste URL</span>
+                  </button>
+                </div>
+
+                {onOpenAiStudio && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenAiStudio('image')}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    title="Generate or edit product photos with Gemini 3.1 Flash Image"
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-600" />
+                    <span>AI Studio Photo</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -576,32 +619,46 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 <span className="text-xs font-bold text-slate-900">Product Video Review / Demo</span>
               </div>
 
-              {/* Source Switcher: Upload Video vs YouTube URL */}
-              <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-xs">
-                <button
-                  type="button"
-                  onClick={() => setVideoTab('upload')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                    videoTab === 'upload'
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Film className="w-3 h-3 text-red-600" />
-                  <span>Direct Video Upload</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVideoTab('url')}
-                  className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                    videoTab === 'url'
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Link2 className="w-3 h-3 text-slate-500" />
-                  <span>YouTube / URL</span>
-                </button>
+              {/* Source Switcher: Upload Video vs YouTube URL + Veo */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setVideoTab('upload')}
+                    className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      videoTab === 'upload'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Film className="w-3 h-3 text-red-600" />
+                    <span>Direct Video Upload</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoTab('url')}
+                    className={`px-3 py-1 rounded-md font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      videoTab === 'url'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Link2 className="w-3 h-3 text-slate-500" />
+                    <span>YouTube / URL</span>
+                  </button>
+                </div>
+
+                {onOpenAiStudio && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenAiStudio('video')}
+                    className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 border border-orange-300 text-orange-800 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    title="Generate video demo from image using Veo 3.1"
+                  >
+                    <Sparkles className="w-3 h-3 text-orange-600" />
+                    <span>Veo Video Generator</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -634,11 +691,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                     }}
                   />
 
-                  {videoUrl ? (
+                  {videoPreviewUrl || videoUrl ? (
                     <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
                       <div className="relative aspect-16/9 max-h-48 rounded-xl overflow-hidden bg-black mx-auto">
                         <video
-                          src={videoUrl}
+                          src={videoPreviewUrl || videoUrl}
                           controls
                           playsInline
                           className="w-full h-full object-contain"
@@ -666,6 +723,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                             type="button"
                             onClick={() => {
                               setVideoUrl('');
+                              setVideoPreviewUrl('');
                               setVideoFileName(null);
                             }}
                             className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
@@ -801,6 +859,44 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 onChange={(e) => setCons(e.target.value)}
                 placeholder="Soft carrying pouch&#10;Requires wired mode for gaming"
                 className="w-full px-3.5 py-2 bg-rose-50/40 border border-rose-200 rounded-xl text-sm focus:bg-white focus:border-rose-500 outline-hidden"
+              />
+            </div>
+          </div>
+
+          {/* SEO & Search Engine Optimization (Optional) */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5 text-orange-600" /> SEO & Google Search Snippet (Optional)
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                Auto-optimized if left blank
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Custom SEO Meta Description (Recommended 140–160 chars)
+              </label>
+              <textarea
+                rows={2}
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value)}
+                placeholder="Honest review & hands-on test of this product. Compare verified discount deals and buyer ratings."
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:border-orange-500 outline-hidden font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Target SEO Keywords (Comma separated)
+              </label>
+              <input
+                type="text"
+                value={seoKeywords}
+                onChange={(e) => setSeoKeywords(e.target.value)}
+                placeholder="e.g. bluetooth headphones review, best wireless earphones, amazon discount"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:border-orange-500 outline-hidden font-medium"
               />
             </div>
           </div>

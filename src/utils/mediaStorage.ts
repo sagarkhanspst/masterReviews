@@ -1,10 +1,13 @@
+import { Product } from '../types';
+
 /**
- * Client-side media handling and IndexedDB persistence for uploaded images & videos.
+ * Client-side media handling and IndexedDB persistence for products and uploaded media.
  */
 
 const DB_NAME = 'AffiliateMediaDB';
-const STORE_NAME = 'media_files';
-const DB_VERSION = 1;
+const MEDIA_STORE = 'media_files';
+const APP_STORE = 'app_data';
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -18,10 +21,13 @@ function getDB(): Promise<IDBDatabase> {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(MEDIA_STORE)) {
+        db.createObjectStore(MEDIA_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(APP_STORE)) {
+        db.createObjectStore(APP_STORE, { keyPath: 'key' });
       }
     };
 
@@ -30,11 +36,58 @@ function getDB(): Promise<IDBDatabase> {
     };
 
     request.onerror = () => {
+      dbPromise = null;
       reject(request.error);
     };
   });
 
   return dbPromise;
+}
+
+/**
+ * Persist products array into IndexedDB (virtually unlimited quota)
+ */
+export async function saveProductsToIndexedDB(products: Product[]): Promise<void> {
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(APP_STORE, 'readwrite');
+      const store = tx.objectStore(APP_STORE);
+      const req = store.put({ key: 'products', data: products, updatedAt: Date.now() });
+
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('Failed to save products to IndexedDB:', err);
+  }
+}
+
+/**
+ * Retrieve saved products from IndexedDB
+ */
+export async function getProductsFromIndexedDB(): Promise<Product[] | null> {
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(APP_STORE, 'readonly');
+      const store = tx.objectStore(APP_STORE);
+      const req = store.get('products');
+
+      req.onsuccess = () => {
+        if (req.result && Array.isArray(req.result.data) && req.result.data.length > 0) {
+          resolve(req.result.data as Product[]);
+        } else {
+          resolve(null);
+        }
+      };
+
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('Failed to load products from IndexedDB:', err);
+    return null;
+  }
 }
 
 /**
@@ -44,8 +97,8 @@ export async function saveMediaToStorage(id: string, file: Blob): Promise<void> 
   try {
     const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
+      const tx = db.transaction(MEDIA_STORE, 'readwrite');
+      const store = tx.objectStore(MEDIA_STORE);
       const req = store.put({ id, data: file, mimeType: file.type, updatedAt: Date.now() });
 
       req.onsuccess = () => resolve();
@@ -63,8 +116,8 @@ export async function getMediaUrlFromStorage(id: string): Promise<string | null>
   try {
     const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
+      const tx = db.transaction(MEDIA_STORE, 'readonly');
+      const store = tx.objectStore(MEDIA_STORE);
       const req = store.get(id);
 
       req.onsuccess = () => {
@@ -85,8 +138,21 @@ export async function getMediaUrlFromStorage(id: string): Promise<string | null>
 }
 
 /**
+ * Resolves any video or image URL (handling indexeddb: prefixes)
+ */
+export async function resolveMediaUrl(url?: string): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith('indexeddb:')) {
+    const mediaId = url.replace('indexeddb:', '');
+    const objUrl = await getMediaUrlFromStorage(mediaId);
+    return objUrl || url;
+  }
+  return url;
+}
+
+/**
  * Optimizes and compresses an uploaded image file down to a lightweight, crystal-clear WebP / JPEG data URL
- * Keeps size around 30KB - 60KB so it never exhausts localStorage limits on page refresh.
+ * Keeps size around 25KB - 40KB so it easily fits into storage without exceeding quotas.
  */
 export function compressAndProcessImage(file: File, maxDim = 800, quality = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -149,32 +215,30 @@ export function compressAndProcessImage(file: File, maxDim = 800, quality = 0.75
   });
 }
 
+export interface VideoUploadResult {
+  storageUrl: string;
+  previewUrl: string;
+}
+
 /**
- * Reads an uploaded video file and returns a usable URL
+ * Reads an uploaded video file and returns a usable URL with persistent IndexedDB storage
  */
-export function processVideoUpload(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // If under 2MB, read as compact data URL
-    if (file.size <= 2 * 1024 * 1024) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.onerror = (e) => reject(e);
-      reader.readAsDataURL(file);
-    } else {
-      // For larger files, save to IndexedDB and create an object URL
-      const mediaId = `video-${Date.now()}`;
-      saveMediaToStorage(mediaId, file)
-        .then(() => {
-          const objectUrl = URL.createObjectURL(file);
-          resolve(objectUrl);
-        })
-        .catch(() => {
-          const objectUrl = URL.createObjectURL(file);
-          resolve(objectUrl);
-        });
-    }
-  });
+export async function processVideoUpload(file: File): Promise<VideoUploadResult> {
+  const mediaId = `video-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  
+  try {
+    await saveMediaToStorage(mediaId, file);
+    const previewUrl = URL.createObjectURL(file);
+    return {
+      storageUrl: `indexeddb:${mediaId}`,
+      previewUrl,
+    };
+  } catch {
+    // If IndexedDB fails, use object URL for session
+    const objectUrl = URL.createObjectURL(file);
+    return {
+      storageUrl: objectUrl,
+      previewUrl: objectUrl,
+    };
+  }
 }

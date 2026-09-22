@@ -66,7 +66,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'Amazon',
     badge: 'Best Seller',
     clicksCount: 342,
-    featured: true
+    featured: true,
+    metaDescription: 'Honest review of the Ultra Noise-Cancelling Wireless Headphones Pro. Features -35dB Hybrid ANC, 40-hr battery, and Bluetooth 5.3. Compare discount deals on Amazon.',
+    seoKeywords: [
+      'noise cancelling wireless headphones',
+      'ANC bluetooth headphones review',
+      'best budget wireless headphones 2026',
+      'Amazon headphones discount',
+      'long battery wireless headset'
+    ]
   },
   {
     id: 'prod-2',
@@ -105,7 +113,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'AliExpress',
     badge: 'Hot Deal',
     clicksCount: 289,
-    featured: true
+    featured: true,
+    metaDescription: 'Comprehensive review & test of the 4K Ultra HD Action & Vlog Camera with Dual Screens. Waterproof 30m, 6-axis EIS stabilization, and 60FPS video. Best AliExpress deal.',
+    seoKeywords: [
+      '4k action camera review',
+      'dual screen vlog camera',
+      'budget gopro alternative',
+      'waterproof action cam aliexpress',
+      'EIS video camera'
+    ]
   },
   {
     id: 'prod-3',
@@ -144,7 +160,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'Daraz',
     badge: 'Editor\'s Choice',
     clicksCount: 512,
-    featured: true
+    featured: true,
+    metaDescription: 'In-depth review of the Smart Fitness & Health Tracker Smartwatch with AMOLED display. Heart rate, SpO2, 100+ sports modes, and 12-day battery life on Daraz.',
+    seoKeywords: [
+      'AMOLED smartwatch review',
+      'fitness tracker smartwatch daraz',
+      'best budget smartwatch 2026',
+      'heart rate spo2 watch',
+      'ip68 waterproof smart watch'
+    ]
   },
   {
     id: 'prod-4',
@@ -182,7 +206,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'Amazon',
     badge: 'Top Rated',
     clicksCount: 174,
-    featured: false
+    featured: false,
+    metaDescription: 'Tested review of the Precision Ergonomic Wireless Vertical Mouse. 57° natural handshake angle, whisper-quiet clicks, and rechargeable USB-C battery on Amazon.',
+    seoKeywords: [
+      'ergonomic vertical mouse review',
+      'carpal tunnel wrist relief mouse',
+      'silent wireless vertical mouse',
+      'best ergonomic mouse amazon',
+      'rechargeable office mouse'
+    ]
   },
   {
     id: 'prod-5',
@@ -220,7 +252,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'Amazon',
     badge: 'Trending',
     clicksCount: 420,
-    featured: true
+    featured: true,
+    metaDescription: 'Barista test review of the Compact Espresso Coffee Machine with 20-bar Italian pump & milk frother. Rapid 45s heating and rich golden crema on Amazon.',
+    seoKeywords: [
+      'espresso coffee machine review',
+      'compact espresso maker with milk frother',
+      '20 bar pump espresso machine',
+      'best budget home espresso maker',
+      'latte cappuccino maker amazon'
+    ]
   },
   {
     id: 'prod-6',
@@ -258,7 +298,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     platform: 'AliExpress',
     badge: 'Hot Deal',
     clicksCount: 198,
-    featured: false
+    featured: false,
+    metaDescription: 'Hands-on review of the RGB LED Gaming & Studio Desk Light Bar. Asymmetric glare-free monitor lighting with 2.4G wireless rotary remote and RGB backlight on AliExpress.',
+    seoKeywords: [
+      'monitor light bar review',
+      'screenbar glare free desk lamp',
+      'rgb gaming monitor light bar',
+      'wireless remote desk light',
+      'best monitor lamp aliexpress'
+    ]
   }
 ];
 

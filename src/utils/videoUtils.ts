@@ -7,6 +7,7 @@ export function isDirectVideo(url?: string): boolean {
   return (
     trimmed.startsWith('data:video/') ||
     trimmed.startsWith('blob:') ||
+    trimmed.startsWith('indexeddb:') ||
     /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(trimmed)
   );
 }
