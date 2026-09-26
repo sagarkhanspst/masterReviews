@@ -9,7 +9,9 @@ import {
   Send,
   Sparkles,
   Share2,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Flame,
+  Play
 } from 'lucide-react';
 
 interface HeroBannerProps {
@@ -19,6 +21,7 @@ interface HeroBannerProps {
   onOpenProfileModal: () => void;
   onOpenGuideModal: () => void;
   onOpenAiStudioModal?: (tab?: 'music' | 'image' | 'video') => void;
+  onOpenYouTubeViralModal?: () => void;
   lang: 'ur' | 'en';
 }
 
@@ -29,6 +32,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   onOpenProfileModal,
   onOpenGuideModal,
   onOpenAiStudioModal,
+  onOpenYouTubeViralModal,
   lang,
 }) => {
   const [copiedLink, setCopiedLink] = React.useState(false);
@@ -160,6 +164,37 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* In-banner YouTube Viral Growth Lab Callout */}
+            {onOpenYouTubeViralModal && (
+              <div 
+                id="hero-youtube-viral-btn"
+                onClick={onOpenYouTubeViralModal}
+                className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 transition-all p-3.5 rounded-2xl text-white text-xs cursor-pointer flex items-center justify-between gap-3 shadow-md shadow-red-600/20 group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shadow-xs backdrop-blur-xs">
+                    <Flame className="w-4 h-4 text-amber-300 animate-pulse group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-sm text-white">
+                        YouTube Viral Growth Lab
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded-md bg-amber-400 text-slate-950 text-[9px] font-extrabold">
+                        HOT
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-red-100 block">
+                      Viral Hooks, 60s Shorts Scripts & Thumbnails
+                    </span>
+                  </div>
+                </div>
+                <span className="font-bold text-xs bg-white text-red-600 px-3 py-1 rounded-xl shadow-xs group-hover:translate-x-0.5 transition-transform shrink-0">
+                  Go Viral →
+                </span>
+              </div>
+            )}
 
             {/* In-banner AI Studio Callout */}
             {onOpenAiStudioModal && (

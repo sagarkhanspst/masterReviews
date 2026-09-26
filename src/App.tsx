@@ -16,6 +16,7 @@ import { AffiliateGuideModal } from './components/AffiliateGuideModal';
 import { SeoStructuredData } from './components/SeoStructuredData';
 import { SeoInspectorModal } from './components/SeoInspectorModal';
 import { AiCreativeStudioModal } from './components/AiCreativeStudioModal';
+import { YouTubeViralModal } from './components/YouTubeViralModal';
 import { Footer } from './components/Footer';
 import { Plus, PackageSearch, Sparkles } from 'lucide-react';
 import { saveProductsToIndexedDB, getProductsFromIndexedDB } from './utils/mediaStorage';
@@ -131,6 +132,7 @@ export default function App() {
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [isSeoModalOpen, setIsSeoModalOpen] = useState(false);
   const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
+  const [isYouTubeViralOpen, setIsYouTubeViralOpen] = useState(false);
   const [aiStudioInitialTab, setAiStudioInitialTab] = useState<'music' | 'image' | 'video'>('video');
   const [aiStudioTargetProduct, setAiStudioTargetProduct] = useState<Product | undefined>(undefined);
 
@@ -389,6 +391,7 @@ export default function App() {
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
         onOpenSeoModal={() => setIsSeoModalOpen(true)}
         onOpenAiStudioModal={handleOpenAiStudio}
+        onOpenYouTubeViralModal={() => setIsYouTubeViralOpen(true)}
       />
 
       {/* Hero Storefront Banner */}
@@ -399,6 +402,7 @@ export default function App() {
         onOpenProfileModal={() => setIsProfileModalOpen(true)}
         onOpenGuideModal={() => setIsGuideModalOpen(true)}
         onOpenAiStudioModal={handleOpenAiStudio}
+        onOpenYouTubeViralModal={() => setIsYouTubeViralOpen(true)}
         lang={lang}
       />
 
@@ -504,6 +508,7 @@ export default function App() {
           setIsSeoModalOpen(true);
         }}
         onOpenAiStudio={(tab, prod) => handleOpenAiStudio(tab, prod)}
+        onOpenYouTubeViral={() => setIsYouTubeViralOpen(true)}
         lang={lang}
       />
 
@@ -551,6 +556,16 @@ export default function App() {
         onApplyImageToProduct={handleApplyImageToProduct}
         onApplyVideoToProduct={handleApplyVideoToProduct}
         onApplyMusicToProduct={handleApplyMusicToProduct}
+      />
+
+      <YouTubeViralModal
+        isOpen={isYouTubeViralOpen}
+        onClose={() => setIsYouTubeViralOpen(false)}
+        products={products}
+        profile={profile}
+        onUpdateProfile={handleSaveProfile}
+        onApplyThumbnailToProduct={handleApplyImageToProduct}
+        onOpenAiStudio={handleOpenAiStudio}
       />
 
       {/* Footer */}

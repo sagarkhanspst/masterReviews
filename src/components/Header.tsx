@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, HelpCircle, User, Sparkles, Globe } from 'lucide-react';
+import { Search, Plus, HelpCircle, User, Sparkles, Flame, Video } from 'lucide-react';
 
 interface HeaderProps {
   searchQuery: string;
@@ -9,6 +9,7 @@ interface HeaderProps {
   onOpenProfileModal: () => void;
   onOpenSeoModal?: () => void;
   onOpenAiStudioModal?: (tab?: 'music' | 'image' | 'video') => void;
+  onOpenYouTubeViralModal?: () => void;
   lang?: 'ur' | 'en';
   onToggleLang?: () => void;
 }
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfileModal,
   onOpenSeoModal,
   onOpenAiStudioModal,
+  onOpenYouTubeViralModal,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
@@ -65,7 +67,24 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Action buttons */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Viral YouTube Growth Lab button */}
+            {onOpenYouTubeViralModal && (
+              <button
+                id="open-youtube-viral-btn"
+                onClick={onOpenYouTubeViralModal}
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs shadow-red-500/25 group"
+                title="Viral YouTube Title & Hook Crafter, 60s Shorts Scripts, AI Thumbnails & Channel Audit"
+              >
+                <Flame className="w-3.5 h-3.5 text-amber-300 animate-pulse group-hover:scale-110 transition-transform" />
+                <span className="hidden md:inline">Viral YouTube</span>
+                <span className="md:hidden">Viral</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-white/20 text-white text-[9px] font-extrabold uppercase">
+                  Growth
+                </span>
+              </button>
+            )}
+
             {/* AI Creative Studio button */}
             {onOpenAiStudioModal && (
               <button
@@ -78,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="hidden md:inline">AI Studio</span>
                 <span className="md:hidden">AI</span>
                 <span className="hidden sm:inline-block px-1.5 py-0.2 rounded-md bg-orange-600 text-white text-[9px] font-bold">
-                  Veo+Lyria
+                  Veo
                 </span>
               </button>
             )}
@@ -87,11 +106,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="open-guide-btn"
               onClick={onOpenGuideModal}
-              className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <HelpCircle className="w-4 h-4 text-amber-600" />
-              <span className="hidden sm:inline">Affiliate Guide</span>
-              <span className="sm:hidden">Guide</span>
+              <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">Guide</span>
             </button>
 
             {/* SEO Center button */}
@@ -103,8 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Google SEO & Product Rich Snippets"
               >
                 <Search className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Product SEO</span>
-                <span className="sm:hidden">SEO</span>
+                <span className="hidden sm:inline">SEO</span>
               </button>
             )}
 
@@ -116,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Edit Creator Profile & Social Links"
             >
               <User className="w-4 h-4 text-slate-600" />
-              <span className="hidden sm:inline">My Account</span>
+              <span className="hidden sm:inline">Profile</span>
             </button>
 
             {/* Add Product button */}
@@ -126,7 +143,8 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3 sm:px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs sm:text-sm font-semibold transition-all shadow-xs hover:shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Add Product</span>
+              <span className="hidden sm:inline">+ Add Product</span>
+              <span className="sm:hidden">+</span>
             </button>
           </div>
         </div>

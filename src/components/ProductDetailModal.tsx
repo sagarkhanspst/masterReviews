@@ -17,7 +17,8 @@ import {
   Pencil,
   Trash2,
   Search,
-  Music
+  Music,
+  Flame
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -29,6 +30,7 @@ interface ProductDetailModalProps {
   onDeleteProduct?: (productId: string) => void;
   onOpenSeo?: (product: Product) => void;
   onOpenAiStudio?: (tab?: 'music' | 'image' | 'video', product?: Product) => void;
+  onOpenYouTubeViral?: (product: Product) => void;
   lang: 'ur' | 'en';
 }
 
@@ -41,6 +43,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onDeleteProduct,
   onOpenSeo,
   onOpenAiStudio,
+  onOpenYouTubeViral,
   lang,
 }) => {
   if (!product) return null;
@@ -223,26 +226,39 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </button>
                 )}
 
-                {/* AI Creative Studio direct shortcuts */}
-                {onOpenAiStudio && (
-                  <div className="ml-auto flex items-center gap-1.5">
+                {/* AI Creative Studio & YouTube Viral direct shortcuts */}
+                <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+                  {onOpenYouTubeViral && (
                     <button
-                      onClick={() => onOpenAiStudio('video', product)}
-                      className="px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                      title="Animate this product photo with Veo video generator"
+                      onClick={() => onOpenYouTubeViral(product)}
+                      className="px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                      title="Generate Viral Titles, 60s Shorts Script & AI Thumbnails for this product"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-                      <span>Animate with Veo</span>
+                      <Flame className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                      <span>Viral YouTube</span>
                     </button>
-                    <button
-                      onClick={() => onOpenAiStudio('music', product)}
-                      className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs transition-colors cursor-pointer"
-                      title="Generate review background music with Lyria"
-                    >
-                      <Music className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
+                  )}
+
+                  {onOpenAiStudio && (
+                    <>
+                      <button
+                        onClick={() => onOpenAiStudio('video', product)}
+                        className="px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Animate this product photo with Veo video generator"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                        <span>Animate with Veo</span>
+                      </button>
+                      <button
+                        onClick={() => onOpenAiStudio('music', product)}
+                        className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs transition-colors cursor-pointer"
+                        title="Generate review background music with Lyria"
+                      >
+                        <Music className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Product Background Audio Player if attached */}
